@@ -1,7 +1,5 @@
 from collections import Counter
 import re
-
-
 class TermFrequencyAnalyzer:
     """
     Class dùng để phân tích Term Frequency (TF) trong một document.

@@ -40,7 +40,6 @@ class VietnameseTextProcessor:
     def word_tokenize(self, text):
         """
         Tách từ tiếng Việt bằng underthesea.
-
         Ví dụ:
             "xử lý ngôn ngữ tự nhiên"
         Có thể thành:
