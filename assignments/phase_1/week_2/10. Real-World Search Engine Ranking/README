@@ -1,0 +1,168 @@
+# Mô Tả Search Service
+
+> *(Phần cấu trúc của hệ thống giữ nguyên trong thư mục project trên Git, chỉ thay đổi phần chức năng search và xử lý text theo pipeline của đề bài yêu cầu.)*
+
+Hệ thống mô phỏng cơ chế tìm kiếm tài liệu bằng **TF-IDF** và **Cosine Similarity** để tìm sản phẩm phù hợp với query của người dùng.
+
+---
+
+# Pipeline
+
+```text
+Preprocess Documents
+        ↓
+Compute TF-IDF
+        ↓
+Vectorize Query
+        ↓
+Compute Cosine Similarity
+        ↓
+Rank Documents
+```
+
+---
+
+# 1. Preprocess Documents
+
+Mỗi sản phẩm được tổng hợp từ nhiều nguồn dữ liệu:
+
+- Tên sản phẩm
+- Mô tả
+- Danh mục
+- Bình luận
+
+Sau đó toàn bộ text được chuẩn hóa bằng các bước:
+
+- Chuyển chữ thường
+- Bỏ dấu tiếng Việt
+- Xóa ký tự đặc biệt / HTML
+- Tokenize
+- Loại bỏ stop words
+
+## Ví dụ
+
+```text
+"Viên uống Vitamin D tốt nhất"
+→ "vitamin d"
+```
+
+Việc preprocess giúp document và query có cùng format để tăng độ chính xác khi tìm kiếm.
+
+---
+
+# 2. Compute IDF
+
+IDF được tính theo công thức:
+
+```math
+idf = log((N + 1) / (df + 1)) + 1
+```
+
+Trong đó:
+
+- `N`: tổng số document
+- `df`: số document chứa term
+
+## Ý nghĩa
+
+- Term xuất hiện càng ít → IDF càng cao
+- Term xuất hiện nhiều → IDF thấp hơn
+
+Điều này giúp giảm ảnh hưởng của các từ quá phổ biến và tăng trọng số cho các từ mang tính đặc trưng.
+
+---
+
+# 3. Compute TF-IDF
+
+TF được tính theo công thức:
+
+```math
+tf = frequency / token_count
+```
+
+Sau đó tính TF-IDF:
+
+```math
+tfidf = tf × idf
+```
+
+Document được biểu diễn dưới dạng vector:
+
+```json
+{
+  "vitamin": 0.23,
+  "d": 0.18,
+  "canxi": 0.41
+}
+```
+
+Vector được lưu dưới dạng `dictionary` vì dữ liệu thường sparse và tiết kiệm bộ nhớ hơn.
+
+---
+
+# 4. Vectorize Query
+
+Query của người dùng cũng được preprocess giống document để đảm bảo cùng format.
+
+## Ví dụ
+
+```text
+"vitmin cho bé"
+→ "vitamin be"
+```
+
+Điều này giúp giảm lỗi do:
+
+- Sai chính tả
+- Khác dấu tiếng Việt
+- Khác chữ hoa/thường
+
+---
+
+# 5. Compute Cosine Similarity
+
+Độ tương đồng giữa query và document được tính bằng:
+
+```math
+cos(\theta) = (A \cdot B) / (||A|| ||B||)
+```
+
+Cosine Similarity giúp đo mức độ liên quan giữa hai vector mà không phụ thuộc vào độ dài văn bản.
+
+---
+
+# 6. Rank Documents
+
+Các document được sắp xếp theo score giảm dần.
+
+## Kết quả trả về
+
+```json
+{
+  "id": product.id,
+  "name": product.name,
+  "score": 0.82,
+  "match_type": "tfidf_cosine"
+}
+```
+
+- `score` càng cao → document càng liên quan đến query.
+
+---
+
+# Kết Luận
+
+Pipeline này mô phỏng cơ chế hoạt động cơ bản của một search engine:
+
+- Chuẩn hóa text
+- Tính TF-IDF
+- Biểu diễn document/query thành vector
+- Dùng cosine similarity để đo độ liên quan
+- Xếp hạng kết quả theo similarity score
+
+## Ưu điểm của cách tiếp cận này
+
+- Đơn giản
+- Dễ triển khai
+- Dễ giải thích
+- Phù hợp cho bài toán document retrieval cơ bản
